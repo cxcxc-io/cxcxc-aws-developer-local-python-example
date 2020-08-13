@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack-main}"
+    image: localstack/localstack
+    ports:
+      - "4566-4599:4566-4599"
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+    environment:
+      - SERVICES=s3, dynamodb, sqs
+      - DEBUG=${DEBUG- }
+      - DATA_DIR=${DATA_DIR- }
+      - PORT_WEB_UI=${PORT_WEB_UI- }
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOST_TMP_FOLDER=${TMPDIR}
+    volumes:
+#      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  elasticache:
+    container_name: "elasticache.local"
+    image: redis:5.0
+    ports:
+      - "6379:6379"
+  
+  linkfar-redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:elasticache.local:6379
+    ports:
+      - "18081:8081"
+
+
+  develope-python-environment:
+    container_name: "aws-python.local"
+    image: jupyter/base-notebook
+    ports:
+      - "5000:5000"
+      - "8888:8888"
+    volumes:
+      - "./materials:/home/jovyan/work"
+    command: start-notebook.sh --NotebookApp.token=''
+
