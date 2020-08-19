@@ -36,7 +36,6 @@ services:
     ports:
       - "18081:8081"
 
-
   develope-python-environment:
     container_name: "aws-python.local"
     image: jupyter/base-notebook
@@ -47,3 +46,15 @@ services:
       - "./materials:/home/jovyan/work"
     command: start-notebook.sh --NotebookApp.token=''
 
+  firefox:
+    container_name: firefox
+    image: jlesage/firefox
+    build: .
+    ports:
+      - "5800:5800"
+    volumes:
+      - "/docker/appdata/firefox:/config:rw"
+    shm_size: 2g
+    privileged: true
+    environment:
+      - ENABLE_CJK_FONT=1
